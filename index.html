@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>Blitz | Bio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --neon-primary: #bd00ff; /* Roxo Ultra */
+            --neon-secondary: #7f00ff;
+            --bg-deep: #030005;
+            --glass: rgba(15, 0, 25, 0.85);
+            --border: rgba(189, 0, 255, 0.25);
+            --text: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            perspective: 1200px; /* Profundidade 3D */
+        }
+
+        /* --- BACKGROUND FX (PARTÍCULAS & GRID) --- */
+        .void-bg {
+            position: fixed; inset: -50%; width: 200%; height: 200%;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(189, 0, 255, 0.08), transparent 60%),
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 80px 80px, 80px 80px;
+            transform: perspective(600px) rotateX(60deg);
+            animation: moveFloor 20s linear infinite;
+            z-index: -2;
+        }
+        @keyframes moveFloor { 0% { transform: perspective(600px) rotateX(60deg) translateY(0); } 100% { transform: perspective(600px) rotateX(60deg) translateY(80px); } }
+
+        /* Partículas flutuantes */
+        .particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1;
+            background-image: radial-gradient(var(--neon-primary) 1px, transparent 1px);
+            background-size: 40px 40px; opacity: 0.3;
+            animation: floatParticles 10s infinite alternate;
+        }
+        @keyframes floatParticles { from {transform: translateY(0);} to {transform: translateY(-20px);} }
+
+        /* Scanlines de TV antiga */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 10;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+        }
+
+        /* --- TELA DE BOOT (INIT) --- */
+        #boot-screen {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: 'Orbitron', monospace;
+        }
+        .loader-bar-container {
+            width: 220px; height: 6px; background: #111; border-radius: 4px;
+            box-shadow: 0 0 15px var(--neon-primary); overflow: hidden;
+        }
+        .loader-bar {
+            height: 100%; width: 0%; background: var(--neon-primary);
+            transition: width 0.1s linear;
+        }
+        .boot-status { margin-top: 15px; color: var(--neon-primary); font-size: 10px; letter-spacing: 3px; }
+        
+        .enter-btn {
+            margin-top: 30px; padding: 12px 40px; 
+            border: 1px solid var(--neon-primary); color: white;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 2px; font-size: 12px;
+            cursor: pointer; display: none; background: rgba(189, 0, 255, 0.1);
+            box-shadow: 0 0 20px rgba(189, 0, 255, 0.4);
+            transition: 0.3s;
+        }
+        .enter-btn:hover { background: var(--neon-primary); color: black; box-shadow: 0 0 40px var(--neon-primary); }
+
+        /* --- CARTÃO PRINCIPAL (3D) --- */
+        .scene { width: 360px; height: auto; perspective: 1000px; }
+        .card {
+            position: relative; width: 100%; 
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px; padding: 2.5rem 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(189, 0, 255, 0.1);
+            transform-style: preserve-3d; transition: transform 0.1s ease-out;
+        }
+
+        /* --- PERFIL --- */
+        .pfp-wrap {
+            position: relative; width: 110px; height: 110px; margin: 0 auto 15px;
+            transform: translateZ(40px);
+        }
+        .pfp {
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+            border: 2px solid white; box-shadow: 0 0 30px var(--neon-primary);
+        }
+        .pfp-aura {
+            position: absolute; inset: -5px; border-radius: 50%;
+            border: 2px dashed rgba(189, 0, 255, 0.5);
+            animation: rotateAura 10s linear infinite; pointer-events: none;
+        }
+        @keyframes rotateAura { to {transform: rotate(360deg);} }
+
+        .user-title {
+            font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 800;
+            color: white; margin-bottom: 5px; transform: translateZ(30px);
+            text-shadow: 0 0 20px var(--neon-primary);
+        }
+        .user-status {
+            font-size: 0.9rem; color: #e0b0ff; margin-bottom: 1.5rem;
+            font-family: 'Rajdhani', monospace; transform: translateZ(30px);
+            display: flex; justify-content: center; align-items: center; gap: 5px;
+        }
+        .cursor-blink { width: 6px; height: 14px; background: var(--neon-primary); animation: blink 1s infinite; }
+        @keyframes blink { 50% {opacity: 0;} }
+
+        /* --- REDES SOCIAIS (Grid) --- */
+        .socials {
+            display: flex; justify-content: center; gap: 12px; margin-bottom: 2rem;
+            transform: translateZ(35px);
+        }
+        .soc-btn {
+            width: 48px; height: 48px; border-radius: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: #ffd700; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none; font-size: 1.3rem;
+        }
+        .soc-btn:hover {
+            background: var(--neon-primary); color: white; border-color: var(--neon-primary);
+            transform: translateY(-5px); box-shadow: 0 5px 20px rgba(189, 0, 255, 0.4);
+        }
+        
+        /* SVG DO ROBLOX (ÍCONE PERSONALIZADO) */
+        .roblox-svg { width: 22px; height: 22px; fill: currentColor; }
+
+        /* --- DISCORD CARD (Rich Presence Style) --- */
+        .discord-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px; padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px; text-align: left;
+            transform: translateZ(25px); position: relative; overflow: hidden;
+        }
+        .discord-card:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+
+        .dc-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .dc-pfp { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; }
+        .dc-user { font-weight: 700; color: white; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;}
+        .dc-desc { font-size: 0.75rem; color: #bbb; margin-top: 2px; }
+        
+        .dc-action {
+            display: block; width: 100%; padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 50px;
+            color: white; text-align: center; text-decoration: none;
+            font-size: 0.8rem; font-weight: 700; transition: 0.3s;
+        }
+        .dc-action:hover { background: white; color: black; }
+
+        /* --- PLAYER DE MÚSICA (Cápsula) --- */
+        .player {
+            background: rgba(0,0,0,0.4); border-radius: 20px;
+            padding: 12px 15px; border: 1px solid rgba(189, 0, 255, 0.3);
+            display: flex; align-items: center; gap: 15px;
+            transform: translateZ(30px); cursor: pointer; transition: 0.3s;
+        }
+        .player:hover { border-color: var(--neon-primary); box-shadow: 0 0 20px rgba(189, 0, 255, 0.15); }
+
+        .vinyl {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: url('https://i1.sndcdn.com/artworks-X0qF8g24sF98-0-t500x500.jpg') center/cover;
+            border: 2px solid #111; animation: spinVinyl 3s linear infinite paused;
+        }
+        .player.playing .vinyl { animation-play-state: running; }
+        @keyframes spinVinyl { 100% { transform: rotate(360deg); } }
+
+        .track-info { flex: 1; text-align: left; overflow: hidden; }
+        .t-title { font-weight: 700; font-size: 0.85rem; color: white; margin-bottom: 2px; }
+        .t-artist { font-size: 0.65rem; color: var(--neon-primary); text-transform: uppercase; letter-spacing: 1px; }
+
+        .eq { display: flex; align-items: flex-end; gap: 3px; height: 15px; }
+        .bar { width: 3px; background: #555; height: 3px; border-radius: 2px; transition: 0.2s; }
+        .player.playing .bar { background: var(--neon-primary); animation: eqBounce 0.5s infinite alternate; }
+        .bar:nth-child(1) { animation-delay: 0s; } .bar:nth-child(2) { animation-delay: 0.2s; } 
+        .bar:nth-child(3) { animation-delay: 0.1s; } .bar:nth-child(4) { animation-delay: 0.3s; }
+        @keyframes eqBounce { 0% {height: 20%;} 100% {height: 100%;} }
+
+        .play-icon { font-size: 1rem; color: white; margin-right: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+    <div class="void-bg"></div>
+    <div class="particles"></div>
+
+    <audio id="audio" loop>
+        <source src="mylittlepony.mp3" type="audio/mp3">
+    </audio>
+
+    <div id="boot-screen">
+        <div class="loader-bar-container"><div class="loader-bar" id="fill"></div></div>
+        <div class="boot-status" id="boot-msg">LOADING ASSETS...</div>
+        <div class="enter-btn" id="start-btn">INITIALIZE SYSTEM</div>
+    </div>
+
+    <div class="scene" id="scene">
+        <div class="card">
+            
+            <div class="pfp-wrap">
+                <div class="pfp-aura"></div>
+                <img src="https://i.pinimg.com/236x/9e/37/13/9e371397d33a355cd82ac88f6e9122c1.jpg" alt="Profile" class="pfp">
+            </div>
+
+            <h1 class="user-title">blitz</h1>
+            <div class="user-status">
+                <span id="typing"></span><div class="cursor-blink"></div>
+            </div>
+
+            <div class="socials">
+                <a href="https://www.roblox.com/users/2821964313/profile" target="_blank" class="soc-btn" aria-label="Roblox">
+                    <svg class="roblox-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5.446 1.026a1.966 1.966 0 0 0-1.583.565L.564 4.889a1.966 1.966 0 0 0-.54 1.621l2.454 12.01a1.966 1.966 0 0 0 1.583 1.54l16.14 3.298a1.966 1.966 0 0 0 1.996-1.127l3.299-16.139a1.966 1.966 0 0 0-1.127-1.996L5.446 1.026zm4.84 7.649 5.882 1.202-1.202 5.882-5.882-1.202 1.202-5.882z"/>
+                    </svg>
+                </a>
+                
+                <a href="https://discord.com/users/903038724076634173" class="soc-btn"><i class="fa-brands fa-discord"></i></a>
+                
+                <a href="#" class="soc-btn"><i class="fa-brands fa-spotify"></i></a>
+            </div>
+
+            <div class="discord-card">
+                <div class="dc-head">
+                    <img src="https://i.pinimg.com/236x/9e/37/13/9e371397d33a355cd82ac88f6e9122c1.jpg" class="dc-pfp">
+                    <div class="dc-info">
+                        <div class="dc-user">@realment3 <i class="fa-solid fa-circle-check" style="color: #5865F2; font-size: 0.8rem;"></i></div>
+                        <div class="dc-desc">Online via Mobile</div>
+                    </div>
+                </div>
+                <a href="https://discord.com/users/903038724076634173" target="_blank" class="dc-action">
+                    Add on discord <i class="fa-solid fa-user-plus" style="margin-left: 5px;"></i>
+                </a>
+            </div>
+
+            <div class="player" id="player">
+                <div class="vinyl"></div>
+                <div class="track-info">
+                    <div class="t-title">My Little White Pony</div>
+                    <div class="t-artist">...</div>
+                </div>
+                <div class="eq">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+                <i class="fa-solid fa-play play-icon" id="play-btn-icon"></i>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ELEMENTOS
+        const bootScreen = document.getElementById('boot-screen');
+        const fill = document.getElementById('fill');
+        const bootMsg = document.getElementById('boot-msg');
+        const startBtn = document.getElementById('start-btn');
+        const scene = document.getElementById('scene');
+        const card = document.querySelector('.card');
+        
+        // AUDIO
+        const audio = document.getElementById('audio');
+        const player = document.getElementById('player');
+        const playBtnIcon = document.getElementById('play-btn-icon');
+
+        // 1. ANIMAÇÃO DE BOOT (SIMULADA)
+        window.onload = () => {
+            let p = 0;
+            const timer = setInterval(() => {
+                p += Math.random() * 15;
+                if(p > 100) p = 100;
+                fill.style.width = p + '%';
+
+                if(p < 40) bootMsg.innerText = "LOADING MODULES...";
+                else if(p < 80) bootMsg.innerText = "VERIFYING SECURITY...";
+                else if(p < 100) bootMsg.innerText = "DECRYPTING USER DATA...";
+                else {
+                    clearInterval(timer);
+                    bootMsg.innerText = "SYSTEM READY";
+                    startBtn.style.display = "block";
+                }
+            }, 100);
+        };
+
+        // 2. INICIAR SISTEMA
+        startBtn.addEventListener('click', () => {
+            bootScreen.style.opacity = '0';
+            setTimeout(() => { bootScreen.style.display = 'none'; }, 500);
+            toggleAudio(true); // Tenta tocar musica
+            typeWriter();      // Começa a digitar
+        });
+
+        // 3. CONTROLE DE MÚSICA
+        function toggleAudio(forcePlay = false) {
+            if(forcePlay || audio.paused) {
+                const promise = audio.play();
+                if(promise !== undefined) {
+                    promise.then(() => updateUI(true)).catch(() => updateUI(false));
+                }
+            } else {
+                audio.pause();
+                updateUI(false);
+            }
+        }
+
+        function updateUI(isPlaying) {
+            if(isPlaying) {
+                player.classList.add('playing');
+                playBtnIcon.classList.remove('fa-play');
+                playBtnIcon.classList.add('fa-pause');
+            } else {
+                player.classList.remove('playing');
+                playBtnIcon.classList.remove('fa-pause');
+                playBtnIcon.classList.add('fa-play');
+            }
+        }
+
+        player.addEventListener('click', () => toggleAudio());
+
+        // 4. EFEITO 3D NO MOUSE/TOUCH
+        const handleMove = (x, y) => {
+            const rotX = (window.innerHeight / 2 - y) / 20;
+            const rotY = (x - window.innerWidth / 2) / 20;
+            card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        };
+
+        document.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+        document.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY));
+
+        // 5. DIGITAÇÃO "say ong?"
+        const text = "say ong?";
+        const typeDest = document.getElementById('typing');
+        let idx = 0;
+
+        function typeWriter() {
+            if (idx < text.length) {
+                typeDest.innerHTML += text.charAt(idx);
+                idx++;
+                setTimeout(typeWriter, 150);
+            }
+        }
+    </script>
+</body>
+</html>
+
